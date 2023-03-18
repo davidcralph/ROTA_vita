@@ -1,63 +1,63 @@
 extends CanvasLayer
 
-onready var gem_label : Label = $Control/Gems/Label
+onready var gem_label : Label = $Control/Top/Label
+onready var clock_label := $Control/Down/Label
 
-onready var zoom_notch := $Control/Top/Zoom/Slider/Notch
-onready var zoom_circle := $Control/Top/Zoom/Circle
-var zoom_from := 0.0
-var zoom_to := 0.0
+var up = EaseMover.new()
+var down = EaseMover.new()
+var keys = EaseMover.new()
 
-var gem = EaseMover.new()
-var top = EaseMover.new()
-var menu = EaseMover.new()
-var zoom = EaseMover.new()
+onready var clock := $Control/Clock
+onready var clock_file := $Control/Clock/File
+onready var clock_map := $Control/Clock/Map
+onready var clock_down := $Control/Clock/Down
+onready var clock_best := $Control/Clock/Down/Best
+onready var clock_goal := $Control/Clock/Down/Goal
+onready var clock_ease := EaseMover.new()
 
 func _ready():
 	Shared.connect("scene_changed", self, "scene_changed")
 	
 	gem_label.text = str(Shared.gem_count)
 	
-	gem.node = $Control/Gems
-	gem.to = gem.node.rect_position
-	gem.from = gem.to - Vector2(0, 120)
-	gem.show = false
+	up.node = $Control/Top
+	up.to = up.node.rect_position
+	up.from = up.to - Vector2(0, 120)
+	up.show = false
 	
-	top.node = $Control/Top
-	top.to = top.node.rect_position
-	top.from = top.to - Vector2(0, 125)
+	down.node = $Control/Down
+	down.to = down.node.rect_position
+	down.from = down.to + Vector2(0, 120)
+	down.show = false
 	
-	zoom.time = 0.25
-	zoom_circle.scale = Vector2.ZERO
+	keys.node = $Control/Keys
+	keys.to = keys.node.rect_position
+	keys.from = keys.to + Vector2(0, 80)
+	keys.show = false
 	
-	menu.node = $Control/Menu
-	menu.to = menu.node.rect_position
-	menu.from = menu.to + Vector2(0, 80)
-	menu.show = false
-	
-	gem_label.text = str(Shared.gem_count)
+	scene_changed()
+	clock.modulate.a = Shared.clock_alpha
 
 func _physics_process(delta):
 	var p = MenuPause.is_open
-	gem.move(delta, gem.show or p)
-	top.move(delta, p)
-	menu.move(delta)
+	up.move(delta, up.show or p)
+	down.move(delta, Shared.clock_rank > 0 and (down.show or p))
+	keys.move(delta)
 	
-	if zoom.clock != zoom.time:
-		zoom.count(delta)
-		zoom_circle.scale = Vector2.ONE * lerp(zoom_from, zoom_to, zoom.frac())
+	clock_down.modulate.a = clock_ease.count(delta)
 
-func set_zoom(frac := 0.0):
-	zoom_notch.position.y = lerp(8, 56, frac)
-	
-	zoom_from = zoom_circle.scale.x
-	zoom_to = lerp(0.0, 1.0, frac)
-	zoom.clock = 0
-
-func scene_changed():
-	UI.gem.clock = 0.0
+func scene_changed(override := false):
+	up.clock = 0.0
+	var m = Shared.map_name != "" or override
+	var h = "hub" in Shared.map_name
+	var b = Shared.clock_show == Shared.SPEED.BOTH
+	var t = Shared.clock_show == Shared.SPEED.TRADE
+	clock_file.visible = m and ((t and h) or (b or Shared.clock_show == Shared.SPEED.FILE))
+	clock_map.visible = m and !h and (t or b or Shared.clock_show == Shared.SPEED.MAP)
+	clock_ease.show = m and !h and Shared.clock_show > 0
 
 func menu_keys(accept := "", cancel := ""):
-	var c = $Control/Menu/Items.get_children()
+	var c = $Control/Keys/List.get_children()
 	
 	# accept
 	var is_a = accept != ""

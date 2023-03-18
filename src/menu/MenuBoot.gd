@@ -3,32 +3,23 @@ extends MenuBase
 export var sub_path : NodePath
 onready var main_menu = get_node_or_null(sub_path)
 
-var pos = [Vector2(1800, 650), Vector2(1650, 650)]
-
 func _ready():
-	UI.menu.show = true
-	
-	Cam.rotation = 0
-	Cam.target_pos = pos[0]
-	Cam.position = Cam.target_pos
-	
+	UI.keys.show = true
+	Cam.target_node = null
+	Cam.snap_to(main_menu.pos, 0)
 	Shared.save_slot = -1
+	Shared.player.is_input = false
+	randomize()
+	MenuMakeover.preset()
 	
 	if !Music.playing:
 		randomize()
 		Music.play_song()
 
 func _exit_tree():
-	UI.menu.show = false
-
-func _input(event):
-	menu_input(event)
+	UI.keys.show = false
+	Cam.target_node = Shared.player
+	Shared.player.is_input = true
 
 func accept():
-	audio_accept()
 	sub_menu(main_menu)
-	Cam.target_pos = pos[1]
-
-func sub_close(arg):
-	.sub_close(arg)
-	Cam.target_pos = pos[0]

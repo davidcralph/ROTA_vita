@@ -2,7 +2,6 @@ tool
 extends KinematicBody2D
 class_name Player
 
-onready var body_area : Area2D = $BodyArea
 onready var areas : Node2D = $Areas
 onready var hit_area : Area2D = $Areas/HitArea
 onready var collider_size : Vector2 = $CollisionShape2D.shape.extents
@@ -11,48 +10,46 @@ onready var anim : AnimationPlayer = $AnimationPlayer
 onready var sprites := $Sprites
 onready var spr_root := $Sprites/Root
 onready var spr_body := $Sprites/Root/Body
+onready var spr_eyes := $Sprites/Root/Body/Eyes
+var spr_easy := EaseMover.new()
 
-onready var spr_hand_l := $Sprites/HandL
-onready var spr_hand_r := $Sprites/HandR
+onready var spr_hands_parent := $Sprites/Hands
+onready var spr_hand_l := $Sprites/Hands/Left
+onready var spr_hand_r := $Sprites/Hands/Right
 onready var spr_hands := [spr_hand_l, spr_hand_r]
-onready var hand_start : Vector2 = spr_hand_r.position
 
-onready var audio_grab := $Audio/Grab
-onready var audio_drop := $Audio/Drop
-onready var audio_push := $Audio/Push
-onready var audio_turn := $Audio/Turn
-onready var audio_jump := $Audio/Jump
-onready var audio_land := $Audio/Land
-onready var audio_fallout := $Audio/FallOut
-onready var audio_spike := $Audio/Spike
-onready var audio_around := $Audio/Around
-onready var audio_peek := $Audio/Peek
-
-export var is_input := true
+export var dir := 0 setget set_dir
+onready var start_dir := dir
+onready var start_pos = global_position
+signal turn
+signal turn_cam
+export var is_input := false
 var joy := Vector2.ZERO
 var joy_last := Vector2.ZERO
 var joy_q := Vector2.ZERO
+var joy_buffer := 0.1
+var hold_x := 0.0
+var hold_y := 0.0
 var btn_jump := false
 var btnp_jump := false
-var holding_jump := 0.0
+var hold_jump := 0.0
+var jump_buffer := 0.3
 var btn_push := false
 var btnp_push := false
-
-export var is_cam := true
-
-export var dir := 0 setget set_dir
 
 var is_move := true
 var is_walk := true
 var is_floor := false
 
 var velocity := Vector2.ZERO
-var move_velocity := Vector2.ZERO
 var dir_x := 1 setget set_dir_x
+signal scale_x
+var idle_dir := "idle"
+export var idle_anim := "idle"
 
 var walk_speed := 350.0
-var floor_accel := 12
-var air_accel := 7
+var floor_accel := 12.0
+var air_accel := 7.0
 
 var is_jump := false
 var has_jumped := true
@@ -66,7 +63,8 @@ var jump_clock := 0.0
 var air_clock := 0.0
 
 var is_dead := false
-var is_fall_out := false
+var dead_clock := 0.0
+var dead_time := 0.7
 
 var turn_clock := 0.0
 var turn_time := 0.2
@@ -75,27 +73,23 @@ var turn_to := 0.0
 
 var is_hold := false
 var is_release := false
-var box 
-var hold_pos := Vector2.ZERO
+var box
 var push_clock := 0.0
 var push_time := 0.2
 var push_from := Vector2.ZERO
 var push_dir := 1
-var box_turn := 1
 
 var hold_clock := 0.0
 var hold_cooldown := 0.2
 
-onready var start_pos = position
-onready var last_pos = position
-
 var is_goal := false
 var goal
-var goal_clock := 0.0
-var goal_times := [0.2, 0.3, 0.5]
 var goal_step := 0
+var goal_times := [0.2, 0.3, 0.5]
+var goal_easy := EaseMover.new()
 var hand_positions := [Vector2.ZERO, Vector2.ZERO]
 var goal_start := Vector2.ZERO
+var goal_grab := Vector2.ZERO
 
 var squish_from := Vector2.ONE
 var squish_clock := 0.0
@@ -107,90 +101,146 @@ var unpause_tick := 0
 var release_clock := 0.0
 var release_time := 0.2
 
+onready var colors := {"hair": [$Sprites/Root/Body/HairBack, $Sprites/Root/Body/HairFront,], "skin": [$Sprites/Root/Body/Head, $Sprites/Hands],
+"fit": [$Sprites/Root/Body/Fit], "eye": [$Sprites/Root/Body/Eyes]}
+export(Array, Color) var palette := []
+export var dye := {"hair": 0, "skin": 0, "fit": 0, "eye": 0} setget set_dye
+
+onready var hair_back := $Sprites/Root/Body/HairBack
+onready var hair_front := $Sprites/Root/Body/HairFront
+export (Array, String, FILE) var hair_backs := []
+export (Array, String, FILE) var hair_fronts := []
+
+export var hairstyle_back := 0 setget set_hair_back
+export var hairstyle_front := 0 setget set_hair_front
+
+onready var hat_node := $Sprites/Root/Body/Hat
+export (Array, String, FILE) var hats := []
+export var hat := 0 setget set_hat
+
+var blink_ease := EaseMover.new(0.2)
+var blink_clock := 0.0
+var blink_time := 10.0
+var blink_range := Vector2(1, 20)
+
+export var is_npc := false
+export (Array, String, MULTILINE) var lines := ["Lovely day!", "I do adore the flowers", "Haven't seen you before (:"] setget set_lines
+export (String, MULTILINE) var queue_write := "" setget set_queue_write
+export var chat_offset := Vector2(0, -110) setget set_chat_offset
+onready var arrow := get_node_or_null("Arrow")
+onready var chat := get_node_or_null("Arrow/Chat")
+
+var snowball_scene : PackedScene = preload("res://src/actor/Snowball.tscn")
+var snowballs = []
+
 func _enter_tree():
 	if Engine.editor_hint: return
-	Shared.player = self
+	if get_parent() == Shared:
+		Shared.player = self
+	get_tree().connect("physics_frame", self, "physics_frame")
+	MenuPause.connect("closed", self, "unpause")
+	Shared.connect("scene_changed", self, "scene")
+	Wipe.connect("start", self, "wipe_start")
 
 func _ready():
+	set_hair_back()
+	set_hair_front()
+	set_dye()
+	set_hat()
+	set_chat_offset()
 	if Engine.editor_hint: return
-	
 	solve_jump()
 	
-	# go to last door
-	if is_instance_valid(Shared.door_destination):
-		var d = Shared.door_destination
-		position = d.position
-		dir = d.dir
+	# create idle animiations facing left
+	var l = anim.get_animation("idle").duplicate()
+	for i in 3:
+		l.bezier_track_set_key_value(2, i, -l.bezier_track_get_key_value(2, i))
+	anim.add_animation("idle_left", l)
 	
-	# snap to floor
-	var test = rot(Vector2.DOWN * 150)
-	if test_move(transform, test):
-		move_and_collide(test)
+	if !anim.has_animation(idle_anim): idle_anim = "idle"
+	anim_flip(idle_anim)
+#	randomize()
+#	anim.play(idle_anim, 0.0)
+#	anim.seek(2.0, true)
+	
+	if is_npc:
+		z_index -= 1
+		spr_hands_parent.z_index = 0
+		spr_easy.clock = spr_easy.time
+		set_lines()
+		set_queue_write()
+		if hairstyle_back == 6 or hairstyle_front == 7:
+			self.chat_offset.y = -130
+		elif hairstyle_front == 10:
+			self.chat_offset.y = -115
+
+func wipe_start(arg):
+	if !is_npc:
+		spr_easy.show = arg
+
+func scene():
+	# move npc
+	if is_npc:
+		global_position = start_pos
+		self.dir = start_dir
+		
+	# go to last door
+	elif is_instance_valid(Shared.door_in):
+		var d = Shared.door_in
+		global_position = d.global_position
+		self.dir = d.dir
+	
+	#print(name, " pos: ", global_position, " dir: ", dir)
+	
+	velocity = Vector2.ZERO
+	joy_last = Vector2.ZERO
+	joy = Vector2.ZERO
+	is_floor = false
+	is_jump = true
+	is_dead = false
+	sprites.position = Vector2.ZERO
+	sprites.rotation = turn_to
+	turn_clock = turn_time
 	
 	# face left or right
 	randomize()
 	self.dir_x = 1 if randf() > 0.5 else -1
 	
-	# set camera
-	if is_cam:
-		Cam.target_node = self
-	
-	# turn
-	set_dir()
-	sprites.rotation = turn_to
-	turn_clock = turn_time
-	
-	if is_cam:
-		Cam.turn_from = turn_to
-		Cam.turn_to = turn_to
-		Cam.rotation = turn_to
-		Cam.turn_ease.clock = 99
-		Cam.position = position
-		Cam.reset_smoothing()
-		Cam.force_update_scroll()
-		Cam.force_update_transform()
-	
-	anim.play("idle")
-	
-	set_physics_process(false)
-	yield(get_tree(), "idle_frame")
-	set_physics_process(true)
-	
-	if Cutscene.is_show_goal:
-		if is_instance_valid(Shared.goal):
-			Cutscene.goal_show.begin()
-		Cutscene.is_show_goal = false
-	
-	elif Cutscene.is_collect:
-		if is_instance_valid(Shared.door_destination):
-			Cutscene.gem_collect.begin()
-		Cutscene.is_collect = false
-	
-	elif Cutscene.is_start_game:
+	# snap to floor
+	var v = Vector2.DOWN * 150
+	if test_move(transform, rot(v)):
+		move(v)
+		anim.play(idle_dir, 0.0)
+		anim.seek(rand_range(0, anim.current_animation_length), true)
+	else:
 		anim.play("jump")
-		Cutscene.start_game.begin()
-		Cutscene.is_start_game = false
 	
-	MenuPause.connect("signal_close", self, "unpause")
 
 func _physics_process(delta):
 	if Engine.editor_hint: return
 	
-	#last pos
-	last_pos = position
+	sprites.modulate.a = spr_easy.count(delta)
 	
 	if is_dead:
 		sprites.position += rot(velocity) * delta
 		sprites.rotate(deg2rad(-dir_x * 240) * delta)
 		velocity.y += fall_gravity * delta
+		
+		if dead_clock < dead_time:
+			dead_clock += delta
+			if dead_clock > dead_time:
+				Cutscene.is_playing = false
+				Shared.reset()
+		
 		return
 	
 	# input
 	release_clock = max(release_clock - delta, 0)
 	
-	if is_input:
+	if is_input and !Cutscene.is_playing and !Wipe.is_wipe:
 		joy_last = joy
-		joy = Input.get_vector("left", "right", "up", "down").round()
+		joy = Input.get_vector("left", "right", "up", "down")
+		joy = Vector2(sign(joy.x), sign(joy.y))
 		
 		btnp_jump = Input.is_action_just_pressed("jump")
 		btnp_push = Input.is_action_just_pressed("grab")
@@ -204,71 +254,72 @@ func _physics_process(delta):
 		if !is_unpause:
 			btn_jump = Input.is_action_pressed("jump") and release_clock == 0
 			btn_push = Input.is_action_pressed("grab")
-		
-		# jump hold time
-		holding_jump = (holding_jump + delta) if btn_jump else 0.0
+	
+	# holding input
+	hold_x = (hold_x + delta) if joy.x == joy_last.x and joy.x != 0 else 0.0
+	hold_y = (hold_y + delta) if joy.y == joy_last.y and joy.y != 0 else 0.0
+	hold_jump = (hold_jump + delta) if btn_jump else 0.0
 	
 	# pickup goal
-	if is_goal:
+	if is_goal and is_instance_valid(goal):
+		var s = goal_easy.count(delta)
 		
-		var offset = Vector2(20, 20)
-		var p1 = goal.sprites.to_global(offset * Vector2(-1, 1))
-		var p2 = goal.sprites.to_global(offset)
+		var offset = Vector2(20, 20) * goal.sprites.scale
+		var p1 = goal.to_global(offset * Vector2(-1, 1))
+		var p2 = goal.to_global(offset)
 		
-		if goal_step < goal_times.size():
-			var limit = goal_times[goal_step]
-			goal_clock = min(goal_clock + delta, limit)
-			var s = smoothstep(0, 1, goal_clock / limit)
-			
-			match goal_step:
-				0:
-					spr_hand_l.global_position = hand_positions[0].linear_interpolate(p1, s)
-					spr_hand_r.global_position = hand_positions[1].linear_interpolate(p2, s)
-					
-					var move_to = goal_start.linear_interpolate(goal.start_pos, s)
-					var diff = move_to - position
-					
-					move(diff, 0)
-				1:
-					goal.position = goal.start_pos.linear_interpolate(position + rot(Vector2(0, -100)), s)
-					spr_hand_l.global_position = p1
-					spr_hand_r.global_position = p2
-				2:
-					goal.gem.scale = Vector2.ONE * lerp(2.0, 1.0, s)
-			
-			# next step
-			if goal_clock == limit:
-				goal_step += 1
-				goal_clock = 0.0
+		spr_hand_l.global_position = p1
+		spr_hand_r.global_position = p2
+		
+		match goal_step:
+			0:
+				spr_hand_l.global_position = hand_positions[0].linear_interpolate(p1, s)
+				spr_hand_r.global_position = hand_positions[1].linear_interpolate(p2, s)
 				
-				# finished
-				if goal_step > 2:
-					is_goal = false
-					goal.gem.z_as_relative = false
-					goal.is_follow = true
-					release_anim()
-					
-					has_jumped = true
-					is_floor = false
+				move(goal_start.linear_interpolate(goal_grab, s) - global_position, 0)
+			1:
+				goal.global_position = goal_grab.linear_interpolate(global_position + rot(Vector2(0, -100)), s)
+			
+		# next step
+		if goal_easy.is_complete:
+			goal_easy.clock = 0.0
+			goal_step += 1
+			
+			if goal_step < goal_times.size():
+				goal_easy.time = goal_times[goal_step]
+			
+			if goal_step == 2:
+				goal.shine(false)
+			# finished
+			elif goal_step > 2:
+				is_goal = false
+				is_floor = false
+				has_jumped = true
+				release_anim()
+				
+				goal.z_index = 0
+				goal.target = self
 	
 	# holding box
 	elif is_hold:
 		
 		if !is_release:
 			# joy queue
-			if joy.x != 0 and joy_last.x == 0:
+			if joy.x != 0 and hold_x < joy_buffer:
 				joy_q.x = joy.x
-			elif joy.y != 0 and joy_last.y == 0:
+				hold_x = 1
+			elif joy.y != 0 and hold_y < joy_buffer:
 				joy_q.y = joy.y
+				hold_y = 1
 			
 			# during push
 			if push_clock < push_time:
 				push_clock = min(push_clock + delta, push_time)
 				
-				hold_pos = box.position + rot(Vector2(88 * -dir_x, 50 - collider_size.y))
+				var hold_pos = box.global_position + rot(Vector2(88 * -dir_x, 50 - collider_size.y))
 				var smooth = smoothstep(0, 1, push_clock / push_time)
 				var move_to = push_from.linear_interpolate(hold_pos, smooth)
-				var diff = move_to - position
+				var diff = move_to - global_position
 				
 				move(diff, 0)
 				
@@ -288,7 +339,7 @@ func _physics_process(delta):
 					is_release = true
 				
 				# check distance
-				elif position.distance_to(box.position) > 125:
+				elif global_position.distance_to(box.global_position) > 125:
 					is_release = true
 				
 				# release button
@@ -299,67 +350,27 @@ func _physics_process(delta):
 				elif box.can_push and joy_q.x != 0:
 					if dir_x == joy_q.x or !box.test_tile(dir - joy_q.x, 2):
 						if box.start_push(dir - joy_q.x, joy_q.x):
-							push_from = position
+							push_from = global_position
 							push_clock = 0
 							push_dir = joy_q.x
 							
-							audio_push.pitch_scale = rand_range(0.7, 1.3)
-							audio_push.play()
+							
+							Audio.play("player_push", 0.7, 1.3)
 							#print("push successful")
 						#else:
 						#	print("push failed")
 				
 				# turn box
 				elif box.can_spin and joy_q.y != 0:
-					box_turn = joy_q.y * -dir_x
-					box.dir += box_turn
+					box.dir += joy_q.y * -dir_x
 					
-					audio_turn.pitch_scale = rand_range(0.9, 1.3)
-					audio_turn.play()
+					Audio.play("player_turn", 0.9, 1.3)
 				
 				joy_q = Vector2.ZERO
 		
-		# hold animation
-		if !is_release:
-			# hands
-			var box_angle = turn_to
-			var smooth = 0.2
-			if box.is_turn or box.is_push:
-				box_angle += box.sprite.rotation - (box.turn_from if box.is_turn else box.turn_to)
-				smooth = 1.0
-			
-			var box_edge = box.sprite.global_position - Vector2(50 * dir_x, 0).rotated(box_angle)
-			# move hands
-			for i in 2:
-				var offset = Vector2(0, 20  * (-1 if sign(dir_x + 1) == i else 1))
-				var goto = box_edge + offset.rotated(box_angle)
-				spr_hands[i].global_position = spr_hands[i].global_position.linear_interpolate(goto, smooth)
-			
-			# body
-			spr_body.rotation = lerp_angle(spr_body.rotation, 0, 0.1)
-			spr_body.position.y = lerp(spr_body.position.y, 0, 0.1)
-		
 		# release box
 		if is_release:
-			is_hold = false
-			is_release = false
-			is_move = true
-			has_jumped = true
-			hold_clock = 0.0
-			
-			remove_collision_exception_with(box)
-			box.remove_collision_exception_with(self)
-			box.is_hold = false
-			box.pickup()
-			
-			Guide.set_box(null)
-			
-			release_anim()
-			
-			audio_grab.pitch_scale = rand_range(0.7, 1.3)
-			audio_grab.play()
-			
-			release_clock = release_time
+			box_release()
 	
 	# not holding
 	else:
@@ -384,25 +395,27 @@ func _physics_process(delta):
 			if is_floor:
 				
 				# animation
-				#var anim_last = anim.current_animation
-				anim.play("idle" if joy.x == 0 else "walk")
+				anim.playback_speed = 1.0 if joy.x == 0 else dir_x
+				anim.play(idle_dir if joy.x == 0 else "walk")
 				
 				# hold cooldown
 				if hold_clock < hold_cooldown:
 					hold_clock = min(hold_clock + delta, hold_cooldown)
 				
 				# start jump
-				if btn_jump and holding_jump < 0.3:
+				if btn_jump and hold_jump < jump_buffer:
 					is_floor = false
 					anim.play("jump")
+					if dir_x > 0:
+						anim.advance(anim.current_animation_length / 2.0)
 					
 					is_jump = true
 					has_jumped = true
 					velocity.y = jump_speed
 					jump_clock = 0.0
 					
-					audio_jump.pitch_scale = rand_range(0.9, 1.1)
-					audio_jump.play()
+					
+					Audio.play("player_jump", 0.9, 1.1)
 					
 					squish_from = Vector2(0.7, 1.3)
 					squish_clock = 0.0
@@ -427,7 +440,7 @@ func _physics_process(delta):
 						var check_x = sprites.to_local(box.global_position).x > 0
 						self.dir_x = 1 if check_x else -1
 						
-						push_from = position
+						push_from = global_position
 						push_clock = 0
 						push_dir = dir_x
 						
@@ -437,11 +450,9 @@ func _physics_process(delta):
 						var p = box.get_parent()
 						p.move_child(box, 0)
 						
-						#anim.play("RESET")
 						anim.stop()
 						
-						audio_grab.pitch_scale = rand_range(0.7, 1.3)
-						audio_grab.play()
+						Audio.play("player_grab", 0.7, 1.3)
 				
 			# in the air
 			else:
@@ -476,14 +487,14 @@ func _physics_process(delta):
 			move(velocity * delta)
 	
 	# check boundary
-	if !is_fall_out and Boundary.is_outside(global_position):
-		fall_out()
+	if !Wipe.is_wipe and Boundary.is_outside(global_position):
+		print(name, " outside boundary")
+		die()
 	
 	# air clock
 	if is_floor:
 		if air_clock > 0.4:
-			audio_land.pitch_scale = rand_range(0.7, 1.1)
-			audio_land.play()
+			Audio.play("player_land", 0.7, 1.1)
 
 			squish_from = Vector2(1.3, 0.7)
 			squish_clock = 0.0
@@ -496,15 +507,65 @@ func _physics_process(delta):
 	squish_clock = min(squish_clock + delta, squish_time)
 	var s = smoothstep(0, 1, squish_clock / squish_time)
 	sprites.scale = squish_from.linear_interpolate(Vector2.ONE, s)
+	
+	# blink anim
+	if blink_clock < blink_time:
+		blink_clock += delta
+	else:
+		var be = blink_ease.count(delta)
+		spr_eyes.scale.y = lerp(1.0, 0.1, be)
+		if be == 1.0:
+			blink_ease.show = false
+		elif be == 0.0:
+			blink_ease.show = true
+			blink_clock = 0.0
+			blink_time = rand_range(blink_range.x, blink_range.y)
 
-### SetGet
+func physics_frame():
+	# hold animation
+	if is_hold:
+		# hands
+		var box_angle = turn_to
+		var smooth = 0.2
+		if box.is_turn or box.is_push:
+			box_angle += box.sprite.rotation - (box.turn_from if box.is_turn else box.turn_to)
+			smooth = 1.0
+		
+		var box_edge = box.sprite.global_position - Vector2(50 * dir_x, 0).rotated(box_angle)
+		# move hands
+		for i in 2:
+			var offset = Vector2(0, 20  * (-1 if sign(dir_x + 1) == i else 1))
+			var goto = box_edge + offset.rotated(box_angle)
+			spr_hands[i].global_position = spr_hands[i].global_position.linear_interpolate(goto, smooth)
+		
+		# body
+		spr_body.rotation = lerp_angle(spr_body.rotation, 0, 0.1)
+		spr_body.position.y = lerp(spr_body.position.y, 0, 0.1)
+
+### Set Get
+
+func set_dir(arg := dir):
+	dir = posmod(arg, 4)
+	turn_to = deg2rad(dir * 90)
+	
+	turn_clock = 0
+	turn_from = sprites.rotation if sprites else 0
+	
+	if Engine.editor_hint:
+		$Sprites.rotation = turn_to
+	
+	if areas:
+		areas.rotation = turn_to
+	
+	emit_signal("turn", dir)
+	emit_signal("turn_cam", turn_to)
 
 func set_dir_x(arg := dir_x):
-	dir_x = sign(arg)
+	dir_x = -1.0 if arg < 0 else 1.0
 	areas.scale.x = dir_x
-	spr_body.scale.x = dir_x
-	
-	anim.playback_speed = dir_x
+	var l = idle_anim + "_left"
+	idle_dir = idle_anim if dir_x > 0 else (l if anim.has_animation(l) else "idle")
+	emit_signal("scale_x", dir_x)
 
 func set_jump_height(arg):
 	jump_height = arg
@@ -520,20 +581,51 @@ func solve_jump():
 	jump_speed = -jump_gravity * jump_time
 	fall_gravity = jump_gravity * 2.0
 
-func set_dir(arg := dir):
-	dir = posmod(arg, 4)
-	turn_to = deg2rad(dir * 90)
-	
-	turn_clock = 0
-	turn_from = sprites.rotation if sprites else 0
-	
-	if Engine.editor_hint:
-		$Sprites.rotation = turn_to
-	elif is_cam:
-		Cam.turn(turn_to)
-	
-	if areas:
-		areas.rotation = turn_to
+func set_dye(arg := dye):
+	dye = arg
+	for i in dye.keys():
+		dye[i] = posmod(dye[i], palette.size())
+		
+		if colors and colors.has(i):
+			for y in colors[i]:
+				y.modulate = palette[dye[i]]
+
+func set_hair_back(arg := hairstyle_back):
+	hairstyle_back = posmod(arg, hair_backs.size())
+	hairdo(hair_back, hair_backs, hairstyle_back)
+
+func set_hair_front(arg := hairstyle_front):
+	hairstyle_front = posmod(arg, hair_fronts.size())
+	hairdo(hair_front, hair_fronts, hairstyle_front)
+
+func hairdo(node, array, style):
+	if node:
+		for i in node.get_children():
+			i.queue_free()
+		
+		if style > 0:
+			var h = load(array[style]).instance()
+			node.add_child(h)
+			for i in h.get_children():
+				if i.has_method("scale_x"):
+					connect("scale_x", i, "scale_x")
+
+func set_hat(arg := hat):
+	hat = posmod(arg, hats.size())
+	hairdo(hat_node, hats, hat)
+
+func set_queue_write(arg := queue_write):
+	queue_write = arg
+	if chat: chat.queue_write = queue_write
+
+func set_lines(arg := lines):
+	lines = arg
+	if chat: chat.lines = lines
+
+func set_chat_offset(arg := chat_offset):
+	chat_offset = arg
+	if chat: chat.position = chat_offset
+	if arrow: arrow.image_pos = chat_offset
 
 ### Movement
 
@@ -570,7 +662,6 @@ func move(_vel := Vector2.ZERO, _dir := dir):
 	# Floor
 	is_floor = is_y and _vel.y > 0
 	if is_floor:
-		velocity.y = 0
 		has_jumped = false
 
 func walk_around(right := false):
@@ -578,8 +669,7 @@ func walk_around(right := false):
 	self.dir += 1 if right else 3
 	velocity.x = (walk_speed if right else -walk_speed) * 0.72
 	
-	audio_around.pitch_scale = rand_range(0.9, 1.3)
-	audio_around.play()
+	Audio.play("player_around", 0.9, 1.3)
 
 ### Area
 
@@ -588,22 +678,28 @@ func _on_BodyArea_area_entered(area):
 	
 	# pickup goal
 	if !is_goal and p.is_in_group("goal") and !p.is_collected:
+		area.set_deferred("monitorable", false)
 		goal = p
-		goal.pickup(self)
+		goal.is_collected = true
+		goal.z_index = z_index + 1
+		goal_grab = goal.global_position
+		goal_start = global_position
+		goal_step = 0
+		goal_easy.time = goal_times[0]
 		
 		is_goal = true
 		has_jumped = true
 		is_floor = false
 		velocity = Vector2.ZERO
-		goal_start = position
 		
-		#anim.play("idle")
 		anim.stop()
-		
 		for i in spr_hands.size():
 			hand_positions[i] = spr_hands[i].global_position
+		Audio.play("gem_collect")
 
 func _on_BodyArea_body_entered(body):
+	if Wipe.is_wipe: return
+	
 	# hit spike
 	if body.is_in_group("spike"):
 		print("hit spike")
@@ -611,26 +707,42 @@ func _on_BodyArea_body_entered(body):
 
 func die():
 	if is_dead: return
+	if is_npc:
+		scene()
+		return
+	
 	is_dead = true
-	if is_hold:
-		release_anim()
-		Guide.set_box(null)
-	anim.play("jump")
+	dead_clock = 0.0
+	Cutscene.is_playing = true
+	
 	velocity = Vector2(-350 * dir_x, -800)
+	if is_hold:
+		box_release()
+	anim.play("jump")
 	
-	audio_spike.play()
-	audio_fallout.play()
+	Audio.play("player_spike")
+	Audio.play("player_fallout")
 
-	yield(get_tree().create_timer(0.7), "timeout")
-	Shared.reset()
-
-func fall_out():
-	print(name, " outside boundary")
-	is_fall_out = true
-	audio_fallout.play()
+func box_release():
+	is_hold = false
+	is_release = false
+	is_move = true
+	has_jumped = true
+	hold_clock = 0.0
+	spr_root.rotation = 0
 	
-	Shared.reset()
-	is_input = false
+	remove_collision_exception_with(box)
+	box.remove_collision_exception_with(self)
+	box.is_hold = false
+	box.pickup()
+	
+	Guide.set_box(null)
+	
+	release_anim()
+	
+	Audio.play("player_grab", 0.7, 1.3)
+	
+	release_clock = release_time
 
 func release_anim():
 	# set animation keys
@@ -650,15 +762,47 @@ func release_anim():
 	rel.bezier_track_set_key_value(rh, 0, spr_hand_r.position.x)
 	rel.bezier_track_set_key_value(rh + 1, 0, spr_hand_r.position.y)
 	
-	anim.add_animation("release", rel)
 	anim.play("release")
 
-func enter_door():
-	set_physics_process(false)
-	anim.play("idle")
+func anim_flip(_name := ""):
+	if anim.has_animation(_name) and !anim.has_animation(_name + "_left"):
+		var a = anim.get_animation(_name).duplicate()
+		for t in a.get_track_count():
+			var p = str(a.track_get_path(t))
+			if "Left" in p: p = p.replace("Left", "Right")
+			elif "Right" in p: p = p.replace("Right", "Left")
+			a.track_set_path(t, p)
+			
+			if "position:x" in p or "rotation_degrees" in p:
+				var c = a.track_get_key_count(t)
+				print(name , " ", p, " ", c)
+				for k in c:
+					a.bezier_track_set_key_value(t, k, -a.bezier_track_get_key_value(t, k))
+		anim.add_animation(_name + "_left", a)
 
-func unpause(arg):
-	print("unpause")
+func throw_snowball():
+	var s = null
+	for i in snowballs:
+		if i.is_out:
+			s = i
+			break
+	
+	if !is_instance_valid(s):
+		s = snowball_scene.instance()
+		var p = get_parent()
+		p.add_child(s)
+		s.owner = p
+		snowballs.append(s)
+	
+	s.throw((spr_hand_l if dir_x > 0 else spr_hand_r).global_position, s.throw_vel * Vector2(dir_x, 1), dir)
+	#print(name, " throw snowball ", s)
+
+func enter_door():
+	anim.play(idle_dir)
+	joy = Vector2.ZERO
+
+func unpause():
+	#print("unpause")
 	unpause_tick = 0
 	is_unpause = true
 	btn_jump = false

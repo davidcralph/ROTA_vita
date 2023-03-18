@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Node2D",
+"class": "Arrow",
+"language": "GDScript",
+"path": "res://src/actor/door/Arrow.gd"
+}, {
 "base": "KinematicBody2D",
 "class": "Box",
 "language": "GDScript",
@@ -17,7 +22,7 @@ _global_script_classes=[ {
 "base": "Node2D",
 "class": "Door",
 "language": "GDScript",
-"path": "res://src/actor/Door.gd"
+"path": "res://src/actor/door/Door.gd"
 }, {
 "base": "Reference",
 "class": "EaseMover",
@@ -29,11 +34,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/menu/MenuBase.gd"
 }, {
-"base": "Control",
-"class": "OnOff",
-"language": "GDScript",
-"path": "res://src/menu/options/onoff/OnOff.gd"
-}, {
 "base": "Node2D",
 "class": "PaletteSwap",
 "language": "GDScript",
@@ -44,10 +44,20 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://src/actor/Player.gd"
 }, {
+"base": "CanvasItem",
+"class": "PolyShape",
+"language": "GDScript",
+"path": "res://src/actor/shape/PolyShape.gd"
+}, {
 "base": "Resource",
 "class": "SaveDict",
 "language": "GDScript",
 "path": "res://src/class/SaveDict.gd"
+}, {
+"base": "Control",
+"class": "Scroll",
+"language": "GDScript",
+"path": "res://src/menu/options/scroll/Scroll.gd"
 }, {
 "base": "",
 "class": "SteamAPI",
@@ -115,14 +125,16 @@ _global_script_classes=[ {
 "path": "res://addons/steam_api/steam_user_stats.gdns"
 } ]
 _global_script_class_icons={
+"Arrow": "",
 "Box": "",
 "Door": "",
 "EaseMover": "",
 "MenuBase": "",
-"OnOff": "",
 "PaletteSwap": "",
 "Player": "",
+"PolyShape": "",
 "SaveDict": "",
+"Scroll": "",
 "SteamAPI": "",
 "SteamCallback": "",
 "SteamFriends": "",
@@ -141,14 +153,15 @@ _global_script_class_icons={
 [application]
 
 config/name="ROTA"
-config/description="by Harmony Honey"
-run/main_scene="res://src/menu/MenuTitle.tscn"
+config/description="ROTA by Harmony Honey
+hhoney.net"
+run/main_scene="res://src/menu/Splash.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="ROTA-Harmony"
 config/project_settings_override="user://override.cfg"
 boot_splash/image="res://media/image/UI/title_splash.png"
 boot_splash/bg_color=Color( 0, 0, 0, 1 )
-config/icon="res://media/image/icon/icon128.png"
+config/icon="res://media/image/icon/icon256.png"
 config/windows_native_icon="res://media/image/icon/rota.ico"
 
 [autoload]
@@ -167,13 +180,17 @@ MenuOptions="*res://src/menu/options/MenuOptions.tscn"
 MenuRemap="*res://src/menu/options/MenuRemap.tscn"
 Music="*res://src/autoload/Music.tscn"
 Audio="*res://src/autoload/Audio.tscn"
+MenuMakeover="*res://src/menu/MenuMakeover.tscn"
 Steam="*res://addons/steam_api/steam.gd"
+Clouds="*res://src/autoload/Clouds.tscn"
 
 [display]
 
 window/size/width=1280
 window/size/height=720
-window/size/fullscreen=true
+window/size/borderless=true
+window/size/test_width=1920
+window/size/test_height=1080
 window/stretch/mode="2d"
 window/stretch/aspect="keep"
 
@@ -325,6 +342,21 @@ reset={
 , Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":0,"button_index":3,"pressure":0.0,"pressed":false,"script":null)
  ]
 }
+debug_makeover={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777235,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+ ]
+}
+debug_screenshot={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777224,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+ ]
+}
+debug_warp={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777236,"physical_scancode":0,"unicode":0,"echo":false,"script":null)
+ ]
+}
 
 [layer_names]
 
@@ -332,10 +364,9 @@ reset={
 2d_physics/layer_2="player"
 2d_physics/layer_3="box"
 2d_physics/layer_4="spike"
-2d_physics/layer_5="spinner"
-2d_physics/layer_6="arrow"
-2d_physics/layer_7="portal"
-2d_physics/layer_8="exit"
+2d_physics/layer_5="detail"
+2d_physics/layer_6="snowball"
+2d_physics/layer_7="snowball_target"
 2d_physics/layer_11="door"
 2d_physics/layer_12="goal"
 

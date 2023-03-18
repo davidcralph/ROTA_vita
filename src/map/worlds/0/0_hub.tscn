@@ -2,10 +2,10 @@
 
 [ext_resource path="res://src/detail/Saguaro.tscn" type="PackedScene" id=1]
 [ext_resource path="res://src/detail/BarrelCacti.tscn" type="PackedScene" id=2]
-[ext_resource path="res://src/actor/DoorBig.tscn" type="PackedScene" id=3]
+[ext_resource path="res://src/actor/door/DoorBig.tscn" type="PackedScene" id=3]
 [ext_resource path="res://src/stage/SpikeMap.tscn" type="PackedScene" id=4]
 [ext_resource path="res://src/stage/SolidTileMap.tscn" type="PackedScene" id=5]
-[ext_resource path="res://src/actor/Player.tscn" type="PackedScene" id=6]
+[ext_resource path="res://src/detail/Rocks.tscn" type="PackedScene" id=6]
 [ext_resource path="res://src/detail/FlowerPetals.tscn" type="PackedScene" id=7]
 [ext_resource path="res://src/detail/PineTree.tscn" type="PackedScene" id=8]
 [ext_resource path="res://src/detail/Lamppost.tscn" type="PackedScene" id=9]
@@ -16,9 +16,9 @@
 [ext_resource path="res://src/detail/TreeTop.tscn" type="PackedScene" id=14]
 [ext_resource path="res://src/detail/Candle.tscn" type="PackedScene" id=15]
 [ext_resource path="res://src/detail/Fence.tscn" type="PackedScene" id=16]
-[ext_resource path="res://media/image/details/round_rock.png" type="Texture" id=17]
-[ext_resource path="res://media/image/details/rock.png" type="Texture" id=18]
-[ext_resource path="res://media/image/details/rocks.png" type="Texture" id=19]
+[ext_resource path="res://src/detail/RockSquare.tscn" type="PackedScene" id=17]
+[ext_resource path="res://src/detail/RockCircle.tscn" type="PackedScene" id=18]
+[ext_resource path="res://src/actor/NPC.tscn" type="PackedScene" id=19]
 
 [node name="Map" type="Node2D"]
 
@@ -45,9 +45,6 @@ detail = 3
 
 [node name="Actors" type="Node2D" parent="."]
 
-[node name="Player" parent="Actors" instance=ExtResource( 6 )]
-position = Vector2( 3050, 1300 )
-
 [node name="D1" parent="Actors" instance=ExtResource( 3 )]
 position = Vector2( 3050, 1300 )
 scene_path = "res://src/map/worlds/1/0_hub.tscn"
@@ -73,32 +70,40 @@ dir = 3
 scene_path = "res://src/map/worlds/2A/0_hub.tscn"
 gem_count = 15
 
+[node name="NPC" parent="Actors" instance=ExtResource( 19 )]
+position = Vector2( 3425, 2250 )
+dye = {
+"eye": 18,
+"fit": 15,
+"hair": 12,
+"skin": 5
+}
+hairstyle_back = 0
+hairstyle_front = 7
+lines = [ "Where am I?", "What happened last night?...", "I'm looking for my keys..", "do you have any snacks?" ]
+
 [node name="Details" type="Node2D" parent="."]
 
-[node name="RoundRock2" type="Sprite" parent="Details"]
+[node name="Circle" parent="Details" instance=ExtResource( 18 )]
 position = Vector2( 2700, 2050 )
 scale = Vector2( 0.230745, 0.230745 )
-texture = ExtResource( 17 )
 
 [node name="Rocks" type="Node2D" parent="Details"]
 modulate = Color( 0.858824, 0.847059, 0.835294, 1 )
 
-[node name="Rock" type="Sprite" parent="Details/Rocks"]
+[node name="Square" parent="Details/Rocks" instance=ExtResource( 17 )]
 position = Vector2( 3050, 1500 )
 rotation = -1.57079
 scale = Vector2( 0.211426, 0.211426 )
-texture = ExtResource( 18 )
 
-[node name="Rocks" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks" parent="Details/Rocks" instance=ExtResource( 6 )]
 position = Vector2( 3250, 2400 )
 rotation = -3.14159
 scale = Vector2( 0.267496, 0.267496 )
-texture = ExtResource( 19 )
 
-[node name="RoundRock" type="Sprite" parent="Details/Rocks"]
+[node name="Circle" parent="Details/Rocks" instance=ExtResource( 18 )]
 position = Vector2( 3600, 1850 )
 scale = Vector2( 0.23574, 0.23574 )
-texture = ExtResource( 17 )
 
 [node name="Cacti" type="Node2D" parent="Details"]
 

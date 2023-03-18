@@ -12,6 +12,7 @@ var step = -1
 
 func _ready():
 	p.anim.play("jump")
+	
 	if is_trailer:
 		p.dir_x = -1
 	elif !is_active:

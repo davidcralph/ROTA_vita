@@ -1,18 +1,18 @@
 [gd_scene load_steps=14 format=2]
 
-[ext_resource path="res://src/actor/DoorBig.tscn" type="PackedScene" id=1]
+[ext_resource path="res://src/actor/door/DoorBig.tscn" type="PackedScene" id=1]
 [ext_resource path="res://src/stage/SolidTileMap.tscn" type="PackedScene" id=2]
 [ext_resource path="res://src/detail/Tree.tscn" type="PackedScene" id=3]
 [ext_resource path="res://src/detail/FlowerPetals.tscn" type="PackedScene" id=4]
-[ext_resource path="res://src/actor/Player.tscn" type="PackedScene" id=5]
+[ext_resource path="res://src/actor/NPC.tscn" type="PackedScene" id=5]
 [ext_resource path="res://src/detail/Bench.tscn" type="PackedScene" id=6]
-[ext_resource path="res://src/actor/DoorLittle.tscn" type="PackedScene" id=7]
+[ext_resource path="res://src/actor/door/DoorLittle.tscn" type="PackedScene" id=7]
 [ext_resource path="res://src/detail/Flower.tscn" type="PackedScene" id=8]
 [ext_resource path="res://src/detail/TreeTop.tscn" type="PackedScene" id=9]
 [ext_resource path="res://src/stage/SpikeMap.tscn" type="PackedScene" id=10]
-[ext_resource path="res://media/image/details/rock.png" type="Texture" id=11]
-[ext_resource path="res://media/image/details/rocks.png" type="Texture" id=12]
-[ext_resource path="res://media/image/details/round_rock.png" type="Texture" id=13]
+[ext_resource path="res://src/detail/Rocks.tscn" type="PackedScene" id=11]
+[ext_resource path="res://src/detail/RockSquare.tscn" type="PackedScene" id=12]
+[ext_resource path="res://src/detail/RockCircle.tscn" type="PackedScene" id=13]
 
 [node name="Map" type="Node2D"]
 
@@ -24,15 +24,11 @@ tile_data = PoolIntArray( 720890, -1073741824, 0 )
 
 [node name="Actors" type="Node2D" parent="."]
 
-[node name="Player" parent="Actors" instance=ExtResource( 5 )]
-position = Vector2( -150, 650 )
-dir = 3
-
 [node name="DoorBig3" parent="Actors" instance=ExtResource( 1 )]
 position = Vector2( -200, 650 )
 rotation = 4.71239
 dir = 3
-scene_path = "res://src/map/worlds/1/0_start.tscn"
+scene_path = "res://src/map/worlds/0/1_start.tscn"
 
 [node name="DoorBig" parent="Actors" instance=ExtResource( 1 )]
 position = Vector2( -50, 1400 )
@@ -77,112 +73,142 @@ rotation = 1.5708
 dir = 1
 scene_path = "res://src/map/worlds/1/7.tscn"
 
+[node name="NPC" parent="Actors" instance=ExtResource( 5 )]
+position = Vector2( 350, 350 )
+palette = [ Color( 1, 1, 1, 1 ), Color( 0.682353, 0.678431, 0.8, 1 ), Color( 0.4368, 0.4368, 0.52, 1 ), Color( 0, 0, 0, 1 ), Color( 0.478431, 0.25098, 0.423529, 1 ), Color( 0.741176, 0.407843, 0.505882, 1 ), Color( 1, 0.717647, 0.717647, 1 ), Color( 1, 0.866667, 0, 1 ), Color( 1, 0.686275, 0, 1 ), Color( 1, 0.509804, 0, 1 ), Color( 1, 0, 0, 1 ), Color( 1, 0.470588, 0.796078, 1 ), Color( 1, 0, 1, 1 ), Color( 0.623529, 0.219608, 1, 1 ), Color( 0, 0.486275, 1, 1 ), Color( 0, 1, 1, 1 ), Color( 0, 1, 0, 1 ), Color( 0.764706, 1, 0, 1 ), Color( 1, 1, 0, 1 ) ]
+
+[node name="NPC5" parent="Actors" instance=ExtResource( 5 )]
+position = Vector2( -550, 1150 )
+dir = 3
+idle_anim = "ponder"
+palette = [ Color( 1, 1, 1, 1 ), Color( 0.682353, 0.678431, 0.8, 1 ), Color( 0.4368, 0.4368, 0.52, 1 ), Color( 0, 0, 0, 1 ), Color( 0.478431, 0.25098, 0.423529, 1 ), Color( 0.741176, 0.407843, 0.505882, 1 ), Color( 1, 0.717647, 0.717647, 1 ), Color( 1, 0.866667, 0, 1 ), Color( 1, 0.686275, 0, 1 ), Color( 1, 0.509804, 0, 1 ), Color( 1, 0, 0, 1 ), Color( 1, 0.470588, 0.796078, 1 ), Color( 1, 0, 1, 1 ), Color( 0.623529, 0.219608, 1, 1 ), Color( 0, 0.486275, 1, 1 ), Color( 0, 1, 1, 1 ), Color( 0, 1, 0, 1 ), Color( 0.764706, 1, 0, 1 ), Color( 1, 1, 0, 1 ) ]
+dye = {
+"eye": 18,
+"fit": 13,
+"hair": 11,
+"skin": 8
+}
+hairstyle_back = 0
+hairstyle_front = 2
+lines = [ "Be careful!", "These things are pretty pointy..", "I come here to admire the view", "I like the seclusion" ]
+
+[node name="NPC2" parent="Actors" instance=ExtResource( 5 )]
+position = Vector2( 1350, 1360 )
+dir = 3
+palette = [ Color( 1, 1, 1, 1 ), Color( 0.682353, 0.678431, 0.8, 1 ), Color( 0.4368, 0.4368, 0.52, 1 ), Color( 0, 0, 0, 1 ), Color( 0.478431, 0.25098, 0.423529, 1 ), Color( 0.741176, 0.407843, 0.505882, 1 ), Color( 1, 0.717647, 0.717647, 1 ), Color( 1, 0.866667, 0, 1 ), Color( 1, 0.686275, 0, 1 ), Color( 1, 0.509804, 0, 1 ), Color( 1, 0, 0, 1 ), Color( 1, 0.470588, 0.796078, 1 ), Color( 1, 0, 1, 1 ), Color( 0.623529, 0.219608, 1, 1 ), Color( 0, 0.486275, 1, 1 ), Color( 0, 1, 1, 1 ), Color( 0, 1, 0, 1 ), Color( 0.764706, 1, 0, 1 ), Color( 1, 1, 0, 1 ) ]
+dye = {
+"eye": 17,
+"fit": 18,
+"hair": 10,
+"skin": 4
+}
+hairstyle_back = 2
+hairstyle_front = 7
+lines = [ "I've been through that big door!", "I lost a few gems, now I'm locked out..", "It's darker there (:", "Finding a white flower is good luck!" ]
+queue_write = "0"
+
+[node name="NPC3" parent="Actors" instance=ExtResource( 5 )]
+position = Vector2( 1500, 450 )
+dir = 2
+idle_anim = "handstand"
+palette = [ Color( 1, 1, 1, 1 ), Color( 0.682353, 0.678431, 0.8, 1 ), Color( 0.4368, 0.4368, 0.52, 1 ), Color( 0, 0, 0, 1 ), Color( 0.478431, 0.25098, 0.423529, 1 ), Color( 0.741176, 0.407843, 0.505882, 1 ), Color( 1, 0.717647, 0.717647, 1 ), Color( 1, 0.866667, 0, 1 ), Color( 1, 0.686275, 0, 1 ), Color( 1, 0.509804, 0, 1 ), Color( 1, 0, 0, 1 ), Color( 1, 0.470588, 0.796078, 1 ), Color( 1, 0, 1, 1 ), Color( 0.623529, 0.219608, 1, 1 ), Color( 0, 0.486275, 1, 1 ), Color( 0, 1, 1, 1 ), Color( 0, 1, 0, 1 ), Color( 0.764706, 1, 0, 1 ), Color( 1, 1, 0, 1 ) ]
+dye = {
+"eye": 13,
+"fit": 15,
+"hair": 18,
+"skin": 6
+}
+hairstyle_back = 0
+hairstyle_front = 8
+lines = [ "Feet are overrated", "I'm a hands on learner", "Look at life upside down", "I'm going for the record!", "Change your perspective!", "Head rush!", "*phew* let me catch my breath!", "hello" ]
+
 [node name="Details" type="Node2D" parent="."]
 
 [node name="Rocks" type="Node2D" parent="Details"]
 modulate = Color( 0.858824, 0.847059, 0.835294, 1 )
 
-[node name="Rocks" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks5" parent="Details/Rocks" instance=ExtResource( 11 )]
 position = Vector2( -100, 1000 )
 rotation = -1.57079
 scale = Vector2( 0.25, 0.25 )
-texture = ExtResource( 12 )
 
-[node name="Rocks2" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks" parent="Details/Rocks" instance=ExtResource( 11 )]
 position = Vector2( 1100, 900 )
 rotation = -1.57081
 scale = Vector2( 0.25, 0.25 )
-texture = ExtResource( 12 )
 
-[node name="Rocks4" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks2" parent="Details/Rocks" instance=ExtResource( 11 )]
 position = Vector2( 1600, 1500 )
 rotation = 1.57079
 scale = Vector2( 0.25, 0.25 )
-texture = ExtResource( 12 )
 
-[node name="Rocks3" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks4" parent="Details/Rocks" instance=ExtResource( 11 )]
 position = Vector2( 1600, 300 )
-rotation = -5.07036e-06
 scale = Vector2( 0.25, 0.25 )
-texture = ExtResource( 12 )
 
-[node name="Rock" type="Sprite" parent="Details/Rocks"]
+[node name="Square2" parent="Details/Rocks" instance=ExtResource( 12 )]
 position = Vector2( -350, 1150 )
 rotation = -0.785397
 scale = Vector2( 0.3, 0.3 )
-texture = ExtResource( 11 )
 
-[node name="Rock4" type="Sprite" parent="Details/Rocks"]
+[node name="Square" parent="Details/Rocks" instance=ExtResource( 12 )]
 position = Vector2( 500, 650 )
 rotation = -0.785397
 scale = Vector2( 0.3, 0.3 )
-texture = ExtResource( 11 )
 
-[node name="Rock3" type="Sprite" parent="Details/Rocks"]
+[node name="Square3" parent="Details/Rocks" instance=ExtResource( 12 )]
 position = Vector2( 1150, 350 )
 rotation = -0.785397
 scale = Vector2( 0.3, 0.3 )
-texture = ExtResource( 11 )
 
-[node name="Rock2" type="Sprite" parent="Details/Rocks"]
+[node name="Square4" parent="Details/Rocks" instance=ExtResource( 12 )]
 position = Vector2( 100, 650 )
 rotation = -1.57079
 scale = Vector2( 0.49386, 0.49386 )
-texture = ExtResource( 11 )
 
-[node name="Rock8" type="Sprite" parent="Details/Rocks"]
+[node name="Square5" parent="Details/Rocks" instance=ExtResource( 12 )]
 position = Vector2( 2100, 1300 )
 rotation = -1.57079
 scale = Vector2( 0.161747, 0.161747 )
-texture = ExtResource( 11 )
 
-[node name="Rock6" type="Sprite" parent="Details/Rocks"]
+[node name="Square6" parent="Details/Rocks" instance=ExtResource( 12 )]
 position = Vector2( 1800, 500 )
 rotation = -1.57079
 scale = Vector2( 0.141792, 0.141792 )
-texture = ExtResource( 11 )
 
-[node name="Rock5" type="Sprite" parent="Details/Rocks"]
+[node name="Square7" parent="Details/Rocks" instance=ExtResource( 12 )]
 position = Vector2( 850, 500 )
 rotation = -1.57079
 scale = Vector2( 0.478401, 0.478401 )
-texture = ExtResource( 11 )
 
-[node name="Rock7" type="Sprite" parent="Details/Rocks"]
+[node name="Square8" parent="Details/Rocks" instance=ExtResource( 12 )]
 position = Vector2( 1800, 1200 )
 rotation = -2.35619
 scale = Vector2( 0.20081, 0.20081 )
-texture = ExtResource( 11 )
 
-[node name="RoundRock" type="Sprite" parent="Details/Rocks"]
+[node name="Circle7" parent="Details/Rocks" instance=ExtResource( 13 )]
 position = Vector2( 100, 1200 )
 scale = Vector2( 0.2, 0.2 )
-texture = ExtResource( 13 )
 
-[node name="RoundRock2" type="Sprite" parent="Details/Rocks"]
+[node name="Circle5" parent="Details/Rocks" instance=ExtResource( 13 )]
 position = Vector2( 600, 300 )
 scale = Vector2( 0.173567, 0.173567 )
-texture = ExtResource( 13 )
 
-[node name="RoundRock3" type="Sprite" parent="Details/Rocks"]
+[node name="Circle4" parent="Details/Rocks" instance=ExtResource( 13 )]
 position = Vector2( 1100, 600 )
 scale = Vector2( 0.105488, 0.105488 )
-texture = ExtResource( 13 )
 
-[node name="RoundRock4" type="Sprite" parent="Details/Rocks"]
+[node name="Circle3" parent="Details/Rocks" instance=ExtResource( 13 )]
 position = Vector2( 200, 800 )
 scale = Vector2( 0.105488, 0.105488 )
-texture = ExtResource( 13 )
 
-[node name="RoundRock6" type="Sprite" parent="Details/Rocks"]
+[node name="Circle2" parent="Details/Rocks" instance=ExtResource( 13 )]
 position = Vector2( 1.52588e-05, 500 )
 scale = Vector2( 0.105488, 0.105488 )
-texture = ExtResource( 13 )
 
-[node name="RoundRock5" type="Sprite" parent="Details/Rocks"]
+[node name="Circle" parent="Details/Rocks" instance=ExtResource( 13 )]
 position = Vector2( 1550, 1300 )
 scale = Vector2( 0.432215, 0.432215 )
-texture = ExtResource( 13 )
 
 [node name="Bench" parent="Details" instance=ExtResource( 6 )]
 position = Vector2( 700, 150 )
@@ -413,8 +439,8 @@ position = Vector2( 1850, 400 )
 palette = 2
 
 [node name="Flower4" parent="Details" instance=ExtResource( 8 )]
-position = Vector2( 1500, 400 )
-rotation = 3.14159
+position = Vector2( 1600, 400 )
+rotation = 3.92699
 palette = 3
 
 [node name="TreeTop" parent="Details" instance=ExtResource( 9 )]

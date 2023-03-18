@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=2]
+[gd_scene load_steps=32 format=2]
 
 [ext_resource path="res://media/font/mini-wakuwaku.otf" type="DynamicFontData" id=1]
 [ext_resource path="res://media/font/profile/PauseItem.tres" type="DynamicFont" id=2]
@@ -12,17 +12,19 @@
 [ext_resource path="res://src/detail/FlowerPetals.tscn" type="PackedScene" id=10]
 [ext_resource path="res://src/detail/Candle.tscn" type="PackedScene" id=11]
 [ext_resource path="res://src/detail/Lamppost.tscn" type="PackedScene" id=12]
-[ext_resource path="res://src/actor/Player.tscn" type="PackedScene" id=13]
+[ext_resource path="res://media/image/UI/HarmonyHoneyLogo.svg" type="Texture" id=13]
 [ext_resource path="res://src/menu/MenuFile.gd" type="Script" id=14]
 [ext_resource path="res://src/menu/MenuTitle.gd" type="Script" id=15]
 [ext_resource path="res://src/menu/MenuFileDelete.gd" type="Script" id=16]
 [ext_resource path="res://src/menu/MenuFileOpen.gd" type="Script" id=17]
 [ext_resource path="res://src/menu/MenuBoot.gd" type="Script" id=18]
 [ext_resource path="res://media/image/UI/title.png" type="Texture" id=19]
-[ext_resource path="res://src/menu/MenuCredits.gd" type="Script" id=20]
+[ext_resource path="res://src/menu/MenuBase.gd" type="Script" id=20]
 [ext_resource path="res://media/font/profile/PatchNumber.tres" type="DynamicFont" id=21]
 [ext_resource path="res://src/menu/DemoShow.gd" type="Script" id=22]
-[ext_resource path="res://src/menu/MenuFileDemo.gd" type="Script" id=23]
+[ext_resource path="res://media/image/UI/godot_logo.svg" type="Texture" id=23]
+[ext_resource path="res://src/actor/door/DoorSpawn.tscn" type="PackedScene" id=24]
+[ext_resource path="res://src/theme/shadow_text.tres" type="Theme" id=25]
 
 [sub_resource type="StyleBoxFlat" id=1]
 bg_color = Color( 0.74902, 0.376471, 0.380392, 1 )
@@ -39,6 +41,20 @@ corner_radius_top_left = 50
 corner_radius_top_right = 50
 corner_radius_bottom_right = 50
 corner_radius_bottom_left = 50
+
+[sub_resource type="DynamicFont" id=6]
+size = 30
+outline_color = Color( 0, 0, 0, 1 )
+use_mipmaps = true
+use_filter = true
+font_data = ExtResource( 1 )
+
+[sub_resource type="DynamicFont" id=7]
+size = 65
+outline_color = Color( 0, 0, 0, 1 )
+use_mipmaps = true
+use_filter = true
+font_data = ExtResource( 1 )
 
 [sub_resource type="DynamicFont" id=4]
 size = 185
@@ -59,10 +75,12 @@ font_data = ExtResource( 1 )
 [node name="MenuBoot" type="Node2D"]
 pause_mode = 2
 script = ExtResource( 18 )
-is_audio_cursor = false
 text_accept = "Start"
 text_cancel = ""
+is_input = true
 is_open = true
+is_audio_cursor = false
+is_audio_back = false
 sub_path = NodePath("Canvas/MenuTitle")
 
 [node name="Canvas" type="CanvasLayer" parent="."]
@@ -84,6 +102,9 @@ items_path = NodePath("List")
 cursor_path = NodePath("Cursor")
 cursor_margin = Vector2( 20, 3 )
 fade_path = NodePath(".")
+is_input = true
+is_process = true
+is_back_close = true
 sub_path = NodePath("../FileMenu")
 credits_path = NodePath("../Credits")
 
@@ -92,7 +113,6 @@ anchor_right = 1.0
 anchor_bottom = 0.1
 custom_styles/panel = SubResource( 1 )
 __meta__ = {
-"_edit_use_anchors_": false,
 "_editor_description_": ""
 }
 
@@ -111,13 +131,27 @@ margin_right = 249.0
 margin_bottom = 273.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
-custom_fonts/font = ExtResource( 2 )
+theme = ExtResource( 25 )
 text = "Play"
 align = 1
 valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Makeover" type="Label" parent="Canvas/MenuTitle/List"]
+visible = false
+margin_left = 68.0
+margin_top = 250.0
+margin_right = 316.0
+margin_bottom = 301.0
+size_flags_horizontal = 4
+size_flags_vertical = 5
+theme = ExtResource( 25 )
+custom_fonts/font = ExtResource( 2 )
+text = "Makeover"
+align = 1
+valign = 1
 
 [node name="Options" type="Label" parent="Canvas/MenuTitle/List"]
 margin_left = 91.0
@@ -126,6 +160,7 @@ margin_right = 292.0
 margin_bottom = 329.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
+theme = ExtResource( 25 )
 custom_fonts/font = ExtResource( 2 )
 text = "Options"
 align = 1
@@ -141,6 +176,7 @@ margin_right = 286.0
 margin_bottom = 385.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
+theme = ExtResource( 25 )
 custom_fonts/font = ExtResource( 2 )
 text = "Credits"
 align = 1
@@ -156,6 +192,7 @@ margin_right = 336.0
 margin_bottom = 441.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
+theme = ExtResource( 25 )
 custom_fonts/font = ExtResource( 2 )
 text = "Store Page"
 align = 1
@@ -172,6 +209,7 @@ margin_right = 249.0
 margin_bottom = 497.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
+theme = ExtResource( 25 )
 custom_fonts/font = ExtResource( 2 )
 text = "Quit"
 align = 1
@@ -181,45 +219,37 @@ __meta__ = {
 }
 
 [node name="FileMenu" type="Control" parent="Canvas"]
-margin_right = 1280.0
-margin_bottom = 720.0
+anchor_right = 1.0
+anchor_bottom = 0.93
 script = ExtResource( 14 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-items_path = NodePath("List")
-cursor_path = NodePath("Cursor")
+items_path = NodePath("Lists/List")
+cursor_path = NodePath("Lists/Cursor")
 cursor_margin = Vector2( 0, 0 )
 fade_path = NodePath(".")
-axis_x = true
+is_input = true
+is_process = true
+is_back_close = true
 sub_stay_open = true
 
-[node name="Back" type="ColorRect" parent="Canvas/FileMenu"]
-modulate = Color( 1, 1, 1, 0.8 )
+[node name="Lists" type="Control" parent="Canvas/FileMenu"]
+anchor_left = 0.5
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color( 0, 0, 0, 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="ListBack" type="HBoxContainer" parent="Canvas/FileMenu"]
+[node name="ListBack" type="VBoxContainer" parent="Canvas/FileMenu/Lists"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
-custom_constants/separation = 75
+custom_constants/separation = 20
 alignment = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="File1" type="Panel" parent="Canvas/FileMenu/ListBack"]
-margin_left = 115.0
-margin_top = 260.0
-margin_right = 415.0
-margin_bottom = 460.0
-rect_min_size = Vector2( 300, 200 )
+[node name="File1" type="Panel" parent="Canvas/FileMenu/Lists/ListBack"]
+margin_left = 145.0
+margin_top = 52.0
+margin_right = 495.0
+margin_bottom = 227.0
+rect_min_size = Vector2( 350, 175 )
 size_flags_horizontal = 4
 size_flags_vertical = 4
 custom_styles/panel = SubResource( 3 )
@@ -228,12 +258,12 @@ __meta__ = {
 "_editor_description_": ""
 }
 
-[node name="File2" type="Panel" parent="Canvas/FileMenu/ListBack"]
-margin_left = 490.0
-margin_top = 260.0
-margin_right = 790.0
-margin_bottom = 460.0
-rect_min_size = Vector2( 300, 200 )
+[node name="File2" type="Panel" parent="Canvas/FileMenu/Lists/ListBack"]
+margin_left = 145.0
+margin_top = 247.0
+margin_right = 495.0
+margin_bottom = 422.0
+rect_min_size = Vector2( 350, 175 )
 size_flags_horizontal = 4
 size_flags_vertical = 4
 custom_styles/panel = SubResource( 3 )
@@ -242,12 +272,12 @@ __meta__ = {
 "_editor_description_": ""
 }
 
-[node name="File3" type="Panel" parent="Canvas/FileMenu/ListBack"]
-margin_left = 865.0
-margin_top = 260.0
-margin_right = 1165.0
-margin_bottom = 460.0
-rect_min_size = Vector2( 300, 200 )
+[node name="File3" type="Panel" parent="Canvas/FileMenu/Lists/ListBack"]
+margin_left = 145.0
+margin_top = 442.0
+margin_right = 495.0
+margin_bottom = 617.0
+rect_min_size = Vector2( 350, 175 )
 size_flags_horizontal = 4
 size_flags_vertical = 4
 custom_styles/panel = SubResource( 3 )
@@ -256,57 +286,53 @@ __meta__ = {
 "_editor_description_": ""
 }
 
-[node name="Cursor" type="Panel" parent="Canvas/FileMenu"]
+[node name="Cursor" type="Panel" parent="Canvas/FileMenu/Lists"]
 anchor_right = 1.0
 anchor_bottom = 0.1
 custom_styles/panel = SubResource( 1 )
 __meta__ = {
-"_edit_use_anchors_": false,
 "_editor_description_": ""
 }
 
-[node name="List" type="HBoxContainer" parent="Canvas/FileMenu"]
+[node name="List" type="VBoxContainer" parent="Canvas/FileMenu/Lists"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
-custom_constants/separation = 75
+custom_constants/separation = 20
 alignment = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="FileCard" parent="Canvas/FileMenu/List" instance=ExtResource( 5 )]
-margin_left = 115.0
-margin_top = 260.0
-margin_right = 415.0
-margin_bottom = 460.0
+[node name="FileCard" parent="Canvas/FileMenu/Lists/List" instance=ExtResource( 5 )]
+margin_left = 145.0
+margin_top = 52.0
+margin_right = 495.0
+margin_bottom = 227.0
 
-[node name="FileCard2" parent="Canvas/FileMenu/List" instance=ExtResource( 5 )]
-margin_left = 490.0
-margin_top = 260.0
-margin_right = 790.0
-margin_bottom = 460.0
+[node name="FileCard2" parent="Canvas/FileMenu/Lists/List" instance=ExtResource( 5 )]
+margin_left = 145.0
+margin_top = 247.0
+margin_right = 495.0
+margin_bottom = 422.0
 slot = 1
 
-[node name="FileCard3" parent="Canvas/FileMenu/List" instance=ExtResource( 5 )]
-margin_left = 865.0
-margin_top = 260.0
-margin_right = 1165.0
-margin_bottom = 460.0
+[node name="FileCard3" parent="Canvas/FileMenu/Lists/List" instance=ExtResource( 5 )]
+margin_left = 145.0
+margin_top = 442.0
+margin_right = 495.0
+margin_bottom = 617.0
 slot = 2
 
 [node name="FileOpen" type="Control" parent="Canvas/FileMenu"]
-margin_right = 1280.0
-margin_bottom = 720.0
+anchor_right = 1.0
+anchor_bottom = 1.0
 script = ExtResource( 17 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 items_path = NodePath("List")
 cursor_path = NodePath("Cursor")
 cursor_margin = Vector2( 15, 0 )
 fade_path = NodePath(".")
+is_input = true
+is_process = true
+is_back_close = true
 sub_path = NodePath("../FileDelete")
 demo_path = NodePath("../FileDemo")
 
@@ -320,7 +346,8 @@ __meta__ = {
 }
 
 [node name="List" type="VBoxContainer" parent="Canvas/FileMenu/FileOpen"]
-anchor_top = 0.635
+anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 4
@@ -332,10 +359,10 @@ __meta__ = {
 }
 
 [node name="Continue" type="Label" parent="Canvas/FileMenu/FileOpen/List"]
-margin_left = 524.0
-margin_top = 70.0
-margin_right = 755.0
-margin_bottom = 121.0
+margin_left = 204.0
+margin_top = 106.0
+margin_right = 435.0
+margin_bottom = 157.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
 custom_fonts/font = ExtResource( 2 )
@@ -347,10 +374,10 @@ __meta__ = {
 }
 
 [node name="Delete" type="Label" parent="Canvas/FileMenu/FileOpen/List"]
-margin_left = 559.0
-margin_top = 141.0
-margin_right = 720.0
-margin_bottom = 192.0
+margin_left = 239.0
+margin_top = 177.0
+margin_right = 400.0
+margin_bottom = 228.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
 custom_fonts/font = ExtResource( 2 )
@@ -362,12 +389,15 @@ __meta__ = {
 }
 
 [node name="FileDelete" type="Control" parent="Canvas/FileMenu"]
-margin_right = 1280.0
-margin_bottom = 720.0
+anchor_right = 1.0
+anchor_bottom = 1.0
 script = ExtResource( 16 )
 items_path = NodePath("List")
 cursor_path = NodePath("Cursor")
 fade_path = NodePath(".")
+is_input = true
+is_process = true
+is_back_close = true
 open_path = NodePath("../FileOpen")
 
 [node name="Cursor" type="Panel" parent="Canvas/FileMenu/FileDelete"]
@@ -375,42 +405,36 @@ anchor_right = 1.0
 anchor_bottom = 0.1
 custom_styles/panel = SubResource( 1 )
 __meta__ = {
-"_edit_use_anchors_": false,
 "_editor_description_": ""
 }
 
-[node name="List" type="VBoxContainer" parent="Canvas/FileMenu/FileDelete"]
-anchor_top = 0.635
+[node name="Header" type="Label" parent="Canvas/FileMenu/FileDelete"]
+anchor_left = 0.5
+anchor_top = 0.1
 anchor_right = 1.0
-anchor_bottom = 1.0
-size_flags_horizontal = 4
-size_flags_vertical = 4
-custom_constants/separation = 20
-alignment = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Header" type="Label" parent="Canvas/FileMenu/FileDelete/List" groups=["no_item"]]
-margin_left = 412.0
-margin_top = 34.0
-margin_right = 867.0
-margin_bottom = 85.0
+anchor_bottom = 0.5
 size_flags_horizontal = 4
 size_flags_vertical = 5
 custom_fonts/font = ExtResource( 2 )
 text = "Delete Save File?"
 align = 1
 valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
+
+[node name="List" type="VBoxContainer" parent="Canvas/FileMenu/FileDelete"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+custom_constants/separation = 20
+alignment = 1
 
 [node name="Yes" type="Label" parent="Canvas/FileMenu/FileDelete/List"]
-margin_left = 595.0
-margin_top = 105.0
-margin_right = 684.0
-margin_bottom = 156.0
+margin_left = 275.0
+margin_top = 106.0
+margin_right = 364.0
+margin_bottom = 157.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
 custom_fonts/font = ExtResource( 2 )
@@ -422,10 +446,10 @@ __meta__ = {
 }
 
 [node name="No" type="Label" parent="Canvas/FileMenu/FileDelete/List"]
-margin_left = 604.0
-margin_top = 176.0
-margin_right = 675.0
-margin_bottom = 227.0
+margin_left = 284.0
+margin_top = 177.0
+margin_right = 355.0
+margin_bottom = 228.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
 custom_fonts/font = ExtResource( 2 )
@@ -437,12 +461,19 @@ __meta__ = {
 }
 
 [node name="FileDemo" type="Control" parent="Canvas/FileMenu"]
-margin_right = 1280.0
-margin_bottom = 720.0
-script = ExtResource( 23 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 20 )
+__meta__ = {
+"_editor_description_": ""
+}
 items_path = NodePath("List")
 cursor_path = NodePath("Cursor")
 fade_path = NodePath(".")
+is_input = true
+is_process = true
+is_accept_close = true
+is_back_close = true
 
 [node name="Cursor" type="Panel" parent="Canvas/FileMenu/FileDemo"]
 anchor_right = 1.0
@@ -453,8 +484,21 @@ __meta__ = {
 "_editor_description_": ""
 }
 
+[node name="Header" type="Label" parent="Canvas/FileMenu/FileDemo"]
+anchor_left = 0.5
+anchor_top = 0.1
+anchor_right = 1.0
+anchor_bottom = 0.5
+size_flags_horizontal = 4
+size_flags_vertical = 5
+custom_fonts/font = ExtResource( 2 )
+text = "File outside of Demo!"
+align = 1
+valign = 1
+
 [node name="List" type="VBoxContainer" parent="Canvas/FileMenu/FileDemo"]
-anchor_top = 0.635
+anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 4
@@ -465,25 +509,10 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Header" type="Label" parent="Canvas/FileMenu/FileDemo/List" groups=["no_item"]]
-margin_left = 357.0
-margin_top = 70.0
-margin_right = 923.0
-margin_bottom = 121.0
-size_flags_horizontal = 4
-size_flags_vertical = 5
-custom_fonts/font = ExtResource( 2 )
-text = "File outside of Demo!"
-align = 1
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
 [node name="Ok" type="Label" parent="Canvas/FileMenu/FileDemo/List"]
-margin_left = 579.0
+margin_left = 259.0
 margin_top = 141.0
-margin_right = 700.0
+margin_right = 380.0
 margin_bottom = 192.0
 size_flags_horizontal = 4
 size_flags_vertical = 5
@@ -496,62 +525,137 @@ __meta__ = {
 }
 
 [node name="Credits" type="Control" parent="Canvas"]
-visible = false
 margin_right = 1280.0
 margin_bottom = 720.0
 script = ExtResource( 20 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-is_audio_cursor = false
 fade_path = NodePath(".")
 text_accept = ""
+is_input = true
+is_process = true
+is_back_close = true
+is_audio_cursor = false
+is_audio_accept = false
 
 [node name="Back" type="ColorRect" parent="Canvas/Credits"]
-modulate = Color( 1, 1, 1, 0.8 )
+visible = false
+modulate = Color( 0, 0, 0, 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color( 0, 0, 0, 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
-[node name="Label" type="Label" parent="Canvas/Credits"]
+[node name="Patch" type="Label" parent="Canvas/Credits"]
+modulate = Color( 1, 1, 1, 0.25 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_bottom = -15.0
+size_flags_horizontal = 4
+size_flags_vertical = 5
+custom_fonts/font = ExtResource( 21 )
+text = "Patch 4"
+align = 1
+valign = 2
+
+[node name="List" type="VBoxContainer" parent="Canvas/Credits"]
+anchor_left = 0.5
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 4
-size_flags_vertical = 5
-custom_fonts/font = ExtResource( 2 )
-text = "ROTA
+size_flags_vertical = 4
+custom_constants/separation = 0
+alignment = 1
 
-by Harmony Honey
+[node name="Prefix" type="Label" parent="Canvas/Credits/List"]
+margin_top = 88.0
+margin_right = 640.0
+margin_bottom = 119.0
+custom_fonts/font = SubResource( 6 )
+text = "       a game by"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
-
-
-Made with Godot Engine
-
-
-hhoney.net"
+[node name="Label" type="Label" parent="Canvas/Credits/List"]
+visible = false
+margin_left = 48.0
+margin_top = 125.0
+margin_right = 592.0
+margin_bottom = 191.0
+size_flags_horizontal = 4
+custom_fonts/font = SubResource( 7 )
+text = "Harmony Honey"
 align = 1
 valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Patch" type="Label" parent="Canvas/Credits"]
-modulate = Color( 1, 1, 1, 0.25 )
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = 10.0
-margin_bottom = -10.0
-size_flags_horizontal = 4
-size_flags_vertical = 5
-custom_fonts/font = ExtResource( 21 )
-text = "Patch 3"
-valign = 2
+[node name="TextureRect" type="TextureRect" parent="Canvas/Credits/List"]
+margin_top = 119.0
+margin_right = 640.0
+margin_bottom = 319.0
+rect_min_size = Vector2( 0, 200 )
+texture = ExtResource( 13 )
+expand = true
+stretch_mode = 6
+
+[node name="Suffix" type="Label" parent="Canvas/Credits/List"]
+margin_top = 319.0
+margin_right = 640.0
+margin_bottom = 350.0
+custom_fonts/font = SubResource( 6 )
+text = "hhoney.net       "
+align = 2
+valign = 1
+
+[node name="Spacer" type="Control" parent="Canvas/Credits/List"]
+margin_top = 350.0
+margin_right = 640.0
+margin_bottom = 370.0
+rect_min_size = Vector2( 0, 20 )
+
+[node name="Prefix2" type="Label" parent="Canvas/Credits/List"]
+margin_top = 370.0
+margin_right = 640.0
+margin_bottom = 401.0
+custom_fonts/font = SubResource( 6 )
+text = "       made with"
+valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="TextureRect2" type="TextureRect" parent="Canvas/Credits/List"]
+margin_top = 401.0
+margin_right = 640.0
+margin_bottom = 601.0
+rect_min_size = Vector2( 0, 200 )
+texture = ExtResource( 23 )
+expand = true
+stretch_mode = 6
+
+[node name="Label2" type="Label" parent="Canvas/Credits/List"]
+visible = false
+margin_left = 90.0
+margin_top = 595.0
+margin_right = 549.0
+margin_bottom = 661.0
+size_flags_horizontal = 4
+custom_fonts/font = SubResource( 7 )
+text = "Godot Engine"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Suffix2" type="Label" parent="Canvas/Credits/List"]
+margin_top = 601.0
+margin_right = 640.0
+margin_bottom = 632.0
+custom_fonts/font = SubResource( 6 )
+text = "godotengine.org       "
+align = 2
+valign = 1
 
 [node name="Map" type="Node2D" parent="."]
 __meta__ = {
@@ -565,10 +669,8 @@ bg_palette = 1
 
 [node name="Actors" type="Node2D" parent="Map"]
 
-[node name="Player" parent="Map/Actors" instance=ExtResource( 13 )]
+[node name="Spawn" parent="Map/Actors" instance=ExtResource( 24 )]
 position = Vector2( 1825, 0 )
-is_input = false
-is_cam = false
 
 [node name="AttractMode" type="Node2D" parent="Map"]
 position = Vector2( 1800, 650 )
@@ -596,6 +698,7 @@ __meta__ = {
 }
 
 [node name="Demo" type="Label" parent="Map"]
+visible = false
 margin_left = 1500.0
 margin_top = 700.0
 margin_right = 2100.0
@@ -684,9 +787,9 @@ position = Vector2( 1550, 435 )
 palette = 3
 
 [node name="FlowerPetals6" parent="Map/Details" instance=ExtResource( 10 )]
-position = Vector2( 1460, 460 )
+position = Vector2( 1465, 465 )
 rotation = -0.785397
 
 [node name="FlowerPetals3" parent="Map/Details" instance=ExtResource( 10 )]
-position = Vector2( 2140, 840 )
+position = Vector2( 2135, 835 )
 rotation = 0.784805

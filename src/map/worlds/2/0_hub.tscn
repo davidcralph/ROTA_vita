@@ -2,20 +2,21 @@
 
 [ext_resource path="res://src/detail/Lamppost.tscn" type="PackedScene" id=1]
 [ext_resource path="res://src/stage/SolidTileMap.tscn" type="PackedScene" id=2]
-[ext_resource path="res://src/actor/Player.tscn" type="PackedScene" id=3]
+[ext_resource path="res://src/detail/Rocks.tscn" type="PackedScene" id=3]
 [ext_resource path="res://src/detail/Flower.tscn" type="PackedScene" id=4]
 [ext_resource path="res://media/font/mini-wakuwaku.otf" type="DynamicFontData" id=5]
 [ext_resource path="res://src/detail/Tree.tscn" type="PackedScene" id=6]
 [ext_resource path="res://src/detail/Candle.tscn" type="PackedScene" id=7]
 [ext_resource path="res://src/detail/Bench.tscn" type="PackedScene" id=8]
-[ext_resource path="res://src/actor/DoorBig.tscn" type="PackedScene" id=9]
+[ext_resource path="res://src/actor/door/DoorBig.tscn" type="PackedScene" id=9]
 [ext_resource path="res://src/detail/FlowerPetals.tscn" type="PackedScene" id=10]
 [ext_resource path="res://src/detail/Fence.tscn" type="PackedScene" id=11]
 [ext_resource path="res://src/stage/SpikeMap.tscn" type="PackedScene" id=12]
 [ext_resource path="res://src/detail/TreeTop.tscn" type="PackedScene" id=13]
-[ext_resource path="res://src/actor/DoorLittle.tscn" type="PackedScene" id=14]
-[ext_resource path="res://media/image/details/rock.png" type="Texture" id=15]
-[ext_resource path="res://media/image/details/rocks.png" type="Texture" id=16]
+[ext_resource path="res://src/actor/door/DoorLittle.tscn" type="PackedScene" id=14]
+[ext_resource path="res://src/detail/RockSquare.tscn" type="PackedScene" id=15]
+[ext_resource path="res://src/actor/Fade.gd" type="Script" id=16]
+[ext_resource path="res://src/actor/NPC.tscn" type="PackedScene" id=17]
 
 [sub_resource type="DynamicFont" id=1]
 size = 40
@@ -23,24 +24,6 @@ outline_color = Color( 0, 0, 0, 1 )
 use_mipmaps = true
 use_filter = true
 font_data = ExtResource( 5 )
-
-[sub_resource type="GDScript" id=2]
-script/source = "extends CanvasItem
-
-var is_active := false
-
-var fade = EaseMover.new()
-
-func _physics_process(delta):
-	fade.count(delta, is_active)
-	modulate.a = fade.smooth()
-
-func _on_Area2D_area_entered(area):
-	is_active = true
-
-func _on_Area2D_area_exited(area):
-	is_active = false
-"
 
 [sub_resource type="RectangleShape2D" id=3]
 extents = Vector2( 350, 200 )
@@ -59,10 +42,6 @@ bg_palette = 1
 tile_data = PoolIntArray( 1310717, -1610612736, 0 )
 
 [node name="Actors" type="Node2D" parent="."]
-
-[node name="Player" parent="Actors" instance=ExtResource( 3 )]
-position = Vector2( -550, 1600 )
-dir = 1
 
 [node name="BigDoor" parent="Actors" instance=ExtResource( 9 )]
 position = Vector2( -500, 1600 )
@@ -101,9 +80,7 @@ scene_path = "res://src/map/worlds/2/4.tscn"
 position = Vector2( -700, 2650 )
 scene_path = "res://src/map/worlds/2/5.tscn"
 
-[node name="Details" type="Node2D" parent="."]
-
-[node name="DemoLabel" type="Label" parent="Details"]
+[node name="DemoLabel" type="Label" parent="Actors"]
 margin_left = -2350.0
 margin_top = 2450.0
 margin_right = -1350.0
@@ -119,108 +96,143 @@ Available on Steam and itch.io
 - Harmony Honey <3"
 align = 1
 valign = 1
-script = SubResource( 2 )
+script = ExtResource( 16 )
+is_demo = true
 
-[node name="Area2D" type="Area2D" parent="Details/DemoLabel"]
+[node name="Area2D" type="Area2D" parent="Actors/DemoLabel"]
 position = Vector2( 649.998, 250.004 )
 collision_layer = 0
 collision_mask = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Details/DemoLabel/Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Actors/DemoLabel/Area2D"]
 shape = SubResource( 3 )
+
+[node name="NPC" parent="Actors" instance=ExtResource( 17 )]
+position = Vector2( -1950, 2025 )
+dir = 3
+idle_anim = "idle"
+dye = {
+"eye": 18,
+"fit": 5,
+"hair": 0,
+"skin": 6
+}
+hairstyle_back = 0
+hairstyle_front = 0
+hat = 1
+lines = [ "It's always handy having a light", "Feel the delight of candle light!", "I'm not afraid of the dark! I swear..", "Candle candle candle candle..", "I've been trying to open that big door!", "They call me Candle Randall", "I get a lil spooked without my candy", "Need a light?" ]
+queue_write = "5"
+chat_offset = Vector2( 0, -160 )
+
+[node name="NPC2" parent="Actors" instance=ExtResource( 17 )]
+position = Vector2( -1600, 1050 )
+idle_anim = "idle"
+dye = {
+"eye": 0,
+"fit": 18,
+"hair": 15,
+"skin": 5
+}
+hairstyle_front = 3
+lines = [ "Have  you tried turning it off and on again?", "Breathe in, breathe out", "It's so cozy between these trees", "I'ts nice to catch a break and relax", "I feel calm.", "I found a big worm here yesterday!", "Let the trees breathe into you", "Nature takes care of you <3" ]
+
+[node name="NPC3" parent="Actors" instance=ExtResource( 17 )]
+position = Vector2( -575, 2450 )
+dir = 2
+idle_anim = "ponder"
+dye = {
+"eye": 3,
+"fit": 15,
+"hair": 5,
+"skin": 8
+}
+hairstyle_back = 3
+hairstyle_front = 9
+lines = [ "I feel a little dizzy..", "I'm taking a break to enjoy the night sky!", "These boxes have a mind of their own!", "I've been moving boxes all day!", "I've seen a few gems around here..", "I wonder whats beyond that big door" ]
+
+[node name="Details" type="Node2D" parent="."]
 
 [node name="Rocks" type="Node2D" parent="Details"]
 modulate = Color( 0.858824, 0.847059, 0.835294, 1 )
 
-[node name="Rock" type="Sprite" parent="Details/Rocks"]
+[node name="Square11" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -750, 1800 )
 rotation = -0.785397
 scale = Vector2( 0.25, 0.25 )
-texture = ExtResource( 15 )
 
-[node name="Rock4" type="Sprite" parent="Details/Rocks"]
+[node name="Square10" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -500, 2800 )
 rotation = -0.785397
 scale = Vector2( 0.101047, 0.101047 )
-texture = ExtResource( 15 )
 
-[node name="Rock6" type="Sprite" parent="Details/Rocks"]
+[node name="Square9" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -1600, 2600 )
 rotation = -0.785397
 scale = Vector2( 0.421779, 0.421779 )
-texture = ExtResource( 15 )
 
-[node name="Rock7" type="Sprite" parent="Details/Rocks"]
+[node name="Square8" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -2000, 2700 )
 rotation = -1.57079
 scale = Vector2( 0.18134, 0.18134 )
-texture = ExtResource( 15 )
 
-[node name="Rock8" type="Sprite" parent="Details/Rocks"]
+[node name="Square7" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -1800, 2000 )
 rotation = -1.57079
 scale = Vector2( 0.18134, 0.18134 )
-texture = ExtResource( 15 )
 
-[node name="Rock5" type="Sprite" parent="Details/Rocks"]
+[node name="Square6" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -900, 2800 )
 rotation = -0.785397
 scale = Vector2( 0.158171, 0.158171 )
-texture = ExtResource( 15 )
 
-[node name="Rock2" type="Sprite" parent="Details/Rocks"]
+[node name="Square5" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -600, 2150 )
-scale = Vector2( -0.607861, -0.607861 )
-texture = ExtResource( 15 )
+rotation = 3.14159
+scale = Vector2( 0.607861, 0.607861 )
 
-[node name="Rock9" type="Sprite" parent="Details/Rocks"]
+[node name="Square4" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -1650, 1500 )
-scale = Vector2( -0.607861, -0.607861 )
-texture = ExtResource( 15 )
+rotation = 3.14159
+scale = Vector2( 0.607861, 0.607861 )
 
-[node name="Rock10" type="Sprite" parent="Details/Rocks"]
+[node name="Square3" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -1300, 1600 )
-scale = Vector2( -0.353805, -0.353805 )
-texture = ExtResource( 15 )
+rotation = 3.14159
+scale = Vector2( 0.353805, 0.353805 )
 
-[node name="Rock11" type="Sprite" parent="Details/Rocks"]
+[node name="Square2" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -1050, 1450 )
-scale = Vector2( -0.215131, -0.215131 )
-texture = ExtResource( 15 )
+rotation = 3.14159
+scale = Vector2( 0.215131, 0.215131 )
 
-[node name="Rock13" type="Sprite" parent="Details/Rocks"]
+[node name="Square" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -900, 1600 )
-scale = Vector2( -0.143748, -0.143748 )
-texture = ExtResource( 15 )
+rotation = 3.14159
+scale = Vector2( 0.143748, 0.143748 )
 
-[node name="Rock12" type="Sprite" parent="Details/Rocks"]
+[node name="Square12" parent="Details/Rocks" instance=ExtResource( 15 )]
 position = Vector2( -1750, 1750 )
-rotation = -0.785397
-scale = Vector2( -0.107271, -0.107271 )
-texture = ExtResource( 15 )
+rotation = 2.3562
+scale = Vector2( 0.107271, 0.107271 )
 
-[node name="Rocks" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks5" parent="Details/Rocks" instance=ExtResource( 3 )]
 position = Vector2( -700, 1400 )
 scale = Vector2( 0.25, 0.25 )
-texture = ExtResource( 16 )
 
-[node name="Rocks5" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks3" parent="Details/Rocks" instance=ExtResource( 3 )]
 position = Vector2( -1750, 1250 )
 rotation = -1.57079
 scale = Vector2( 0.486089, 0.486089 )
-texture = ExtResource( 16 )
 
-[node name="Rocks3" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks4" parent="Details/Rocks" instance=ExtResource( 3 )]
 position = Vector2( -1300, 2700 )
 rotation = 1.57079
 scale = Vector2( 0.25, 0.25 )
-texture = ExtResource( 16 )
 
-[node name="Rocks4" type="Sprite" parent="Details/Rocks"]
+[node name="Rocks2" parent="Details/Rocks" instance=ExtResource( 3 )]
 position = Vector2( -1800, 2500 )
 rotation = -1.57079
 scale = Vector2( 0.25, 0.25 )
-texture = ExtResource( 16 )
 
 [node name="Bench2" parent="Details" instance=ExtResource( 8 )]
 position = Vector2( -850, 1250 )
@@ -287,10 +299,6 @@ position = Vector2( -1450, 1100 )
 
 [node name="Candle5" parent="Details" instance=ExtResource( 7 )]
 position = Vector2( -1850, 1100 )
-
-[node name="Candle6" parent="Details" instance=ExtResource( 7 )]
-position = Vector2( -1900, 2000 )
-rotation = -1.57079
 
 [node name="Candle8" parent="Details" instance=ExtResource( 7 )]
 position = Vector2( -900, 2000 )
@@ -609,5 +617,5 @@ palette = 0
 position = Vector2( -500, 1900 )
 z_index = -5
 
-[connection signal="area_entered" from="Details/DemoLabel/Area2D" to="Details/DemoLabel" method="_on_Area2D_area_entered"]
-[connection signal="area_exited" from="Details/DemoLabel/Area2D" to="Details/DemoLabel" method="_on_Area2D_area_exited"]
+[connection signal="area_entered" from="Actors/DemoLabel/Area2D" to="Actors/DemoLabel" method="_on_Area2D_area_entered"]
+[connection signal="area_exited" from="Actors/DemoLabel/Area2D" to="Actors/DemoLabel" method="_on_Area2D_area_exited"]

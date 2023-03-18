@@ -1,13 +1,12 @@
 extends Node2D
 
 onready var sprites = $Sprites
-onready var gem := $Sprites/Gem
 onready var area = $Area2D
-onready var start_pos := position
+var shine_easy := EaseMover.new()
+var fade_easy := EaseMover.new()
 
-var player = null
+var target = null
 var is_collected := false
-var is_follow := false
 
 func _enter_tree():
 	if Engine.editor_hint: return
@@ -19,32 +18,29 @@ func _enter_tree():
 	CheatCode.connect("activate", self, "cheat_code")
 
 func _ready():
-	Cam.connect("turning", self, "turning")
+	Cam.connect("turning", self, "set_rotation")
 	
-	if Shared.goals_collected.has(Shared.csfn):
-		#is_collected = true
-		sprites.modulate.a = 0.25
+	if Shared.goals.has(Shared.map_name):
+		var c = 0.0
+		sprites.modulate = Color(c,c,c, 0.2)
 
 func _physics_process(delta):
-	# follow player
-	if is_collected and player != null and is_follow:
-		var target = player.position + player.rot(Vector2.UP * 20)
-		position = position.linear_interpolate(target, 0.1)
-
-func turning(angle):
-	sprites.rotation = angle
-
-func pickup(ply):
-	if is_collected: return
-	player = ply
-	is_collected = true
-	area.set_deferred("monitorable", false)
+	if shine_easy.clock > 0:
+		sprites.scale = Vector2.ONE * lerp(1.0, 2.0, shine_easy.count(delta, false))
 	
-	start_pos = position
-	#area.monitorable = false
+	if fade_easy.clock > 0:
+		modulate.a = fade_easy.count(delta, false)
 	
-	Audio.play(Audio.gem_collect)
+	# follow target
+	if is_instance_valid(target):
+		global_position = global_position.linear_interpolate(target.global_position + target.rot(Vector2.UP * 20), 6.0 * delta)
 
 func cheat_code(cheat):
 	if "konami" in cheat:
-		pass#pickup(Shared.player)
+		is_collected = true
+		Shared.map_clock = 99
+		Audio.play("gem_collect")
+
+func shine(is_audio := true):
+	shine_easy.clock = shine_easy.time
+	if is_audio: Audio.play("gem_show")

@@ -1,0 +1,83 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://src/actor/door/DoorBase.tscn" type="PackedScene" id=1]
+[ext_resource path="res://media/font/profile/DoorLabel.tres" type="DynamicFont" id=2]
+[ext_resource path="res://src/actor/door/DoorBig.gd" type="Script" id=4]
+[ext_resource path="res://src/actor/shape/Rectangle.gd" type="Script" id=5]
+[ext_resource path="res://src/shader/door_big.gdshader" type="Shader" id=7]
+[ext_resource path="res://media/image/box/round_rect100.png" type="Texture" id=8]
+
+[sub_resource type="ShaderMaterial" id=2]
+resource_local_to_scene = true
+shader = ExtResource( 7 )
+shader_param/col_fill = Color( 0.898039, 0.615686, 0.341176, 1 )
+shader_param/col_back = Color( 0, 0, 0, 1 )
+shader_param/col_line = Color( 0.713726, 0.345098, 0.156863, 1 )
+shader_param/line_width = 0.035
+shader_param/line = 0.0
+shader_param/gem_size = 0.0
+shader_param/gem_line = 0.667
+shader_param/gem_offset = Vector2( 0, -0.1 )
+shader_param/gem_col = Color( 1, 0.86, 0, 1 )
+shader_param/gem_fill = Color( 1, 1, 0, 1 )
+shader_param/knob_offset = Vector2( 0.25, 0.65 )
+shader_param/knob_size = 0.075
+
+[node name="Door" instance=ExtResource( 1 )]
+script = ExtResource( 4 )
+audio_range = Vector2( 0.7, 0.9 )
+gem_count = 0
+
+[node name="Arrow" parent="." index="0"]
+col_size = Vector2( 100, 100 )
+image_pos = Vector2( 0, -150 )
+
+[node name="Sprites" type="Node2D" parent="." index="1"]
+
+[node name="Door" type="Polygon2D" parent="Sprites" index="0"]
+material = SubResource( 2 )
+texture = ExtResource( 8 )
+polygon = PoolVector2Array( 100, 100, -100, 100, -100, -50, -98.7464, -61.126, -95.0484, -71.6942, -89.0916, -81.1745, -81.1745, -89.0916, -71.6942, -95.0484, -61.126, -98.7464, -50, -100, 50, -100, 61.1261, -98.7464, 71.6942, -95.0484, 81.1745, -89.0916, 89.0916, -81.1745, 95.0484, -71.6942, 98.7464, -61.126, 100, -50 )
+script = ExtResource( 5 )
+size = Vector2( 100, 100 )
+radius = Plane( 0, 0, 50, 50 )
+
+[node name="Left" type="Node2D" parent="Sprites" index="1"]
+position = Vector2( -100, 0 )
+
+[node name="Control" type="Control" parent="Sprites/Left" index="0"]
+margin_top = -100.0
+margin_right = 100.0
+margin_bottom = 100.0
+rect_clip_content = true
+
+[node name="Label" type="Label" parent="Sprites/Left/Control" index="0"]
+visible = false
+margin_left = 25.0
+margin_top = 15.0
+margin_right = 175.0
+margin_bottom = 165.0
+custom_fonts/font = ExtResource( 2 )
+text = "0"
+align = 1
+valign = 1
+
+[node name="Right" type="Node2D" parent="Sprites" index="2"]
+position = Vector2( 100, 0 )
+
+[node name="Control" type="Control" parent="Sprites/Right" index="0"]
+margin_left = -100.0
+margin_top = -100.0
+margin_bottom = 100.0
+rect_clip_content = true
+
+[node name="Label" type="Label" parent="Sprites/Right/Control" index="0"]
+visible = false
+margin_left = -75.0
+margin_top = 15.0
+margin_right = 75.0
+margin_bottom = 165.0
+custom_fonts/font = ExtResource( 2 )
+text = "0"
+align = 1
+valign = 1

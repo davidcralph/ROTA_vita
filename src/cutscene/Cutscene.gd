@@ -8,19 +8,30 @@ var is_show_goal := false
 onready var gem_collect := $GemCollect
 var is_collect := false
 
+onready var clock := $Clock
+var is_clock := false
+
 onready var start_game := $StartGame
 var is_start_game := false
 
+func _enter_tree():
+	Shared.connect("scene_changed", self, "scene_changed")
 
-func start():
-	is_playing = true
-	Cam.set_process_input(false)
-
-func end():
-	is_playing = false
-	Cam.set_process_input(true)
-
-func end_all():
-	for i in [gem_collect, goal_show, start_game]:
-		if i.is_playing:
-			i.end()
+func scene_changed():
+	if is_playing: return
+	
+	if is_show_goal:
+		is_show_goal = false
+		goal_show.act()
+		
+	elif is_collect:
+		is_collect = false
+		gem_collect.act()
+		
+	elif is_clock:
+		is_clock = false
+		clock.act()
+		
+	elif is_start_game:
+		is_start_game = false
+		start_game.act()
